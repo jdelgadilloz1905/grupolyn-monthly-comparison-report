@@ -867,6 +867,63 @@ function test_correoNoMezclaIdiomas() {
   });
 }
 
+
+// --- Una partida puede desviarse mas que su propia categoria ---------------
+function test_correoNoDiceQueAlgoExplicaMasDel100() {
+  // Shelter se desvia +722.90 en total, pero Landscaping solo se paso +907.84:
+  // otras partidas quedaron por debajo y compensaron. 907.84/722.90 = 126 %.
+  const rep = DeviationEngine.analyze({
+    month: 'Mar', year: 2025,
+    categories: [{
+      name: 'Shelter', kind: 'expense', planned: 4209.94, actual: 4932.84,
+      items: [
+        { name: 'Landscaping', planned: 200, actual: 1107.84 },
+        { name: 'Jewlery Insurance', planned: 145, actual: 0 },
+        { name: 'Home Repairs', planned: 250, actual: 192.05 },
+      ],
+    }],
+  }, { threshold: 15 });
+
+  const body = EmailDraft.buildBody(rep);
+
+  assertTrue(body.indexOf('126%') === -1,
+    'no afirma que una partida explique el 126 % de la diferencia');
+  assertTrue(!/accounts for 1[0-9][0-9]%/.test(body),
+    'ningun porcentaje de responsabilidad por encima de 100');
+  assertTrue(body.indexOf('more than the whole gap') !== -1,
+    'lo explica en palabras: se paso mas que el hueco entero');
+  assertTrue(body.indexOf('offset part of it') !== -1,
+    'y aclara que otras partidas lo compensaron');
+}
+
+
+// --- "Also above plan" solo para las que estan por encima -----------------
+function test_correoNoLlamaAboveALoQueEstaBelow() {
+  const rep = DeviationEngine.analyze({
+    month: 'Mar', year: 2025,
+    categories: [{
+      name: 'Shelter', kind: 'expense', planned: 4209.94, actual: 4932.84,
+      items: [
+        { name: 'Landscaping', planned: 200, actual: 1107.84 },   // +907.84
+        { name: 'Seguro', planned: 145, actual: 0 },              // -145, contrario
+        { name: 'Reparaciones', planned: 250, actual: 192.05 },   // -57.95, contrario
+        { name: 'Basuras', planned: 30, actual: 200 },            // +170, misma direccion
+      ],
+    }],
+  }, { threshold: 15 });
+
+  const body = EmailDraft.buildBody(rep);
+  const tramo = body.substring(body.indexOf('Also'));
+
+  assertTrue(body.indexOf('Also above plan') !== -1, 'lista otras partidas al alza');
+  assertTrue(tramo.indexOf('Seguro') === -1,
+    'no llama "above plan" a una partida que quedo por debajo');
+  assertTrue(tramo.indexOf('Reparaciones') === -1,
+    'ni a otra que tambien quedo por debajo');
+  assertTrue(tramo.indexOf('Basuras') !== -1,
+    'si incluye la que empuja en la misma direccion');
+}
+
 /**
  * Ejecuta toda la batería. Punto de entrada tanto en Apps Script como en local.
  * @returns {{total: number, passed: number, failed: number, failures: Array}}
@@ -917,6 +974,8 @@ function runAllTests() {
   test_correoSinDesviacionesLoDiceClaro();
   test_correoIgnoraRuidoDePocoImporte();
   test_correoNoMezclaIdiomas();
+  test_correoNoDiceQueAlgoExplicaMasDel100();
+  test_correoNoLlamaAboveALoQueEstaBelow();
 
   // Auth — T-04 (solo con dobles locales)
   test_authGuardaHashNoTextoPlano();

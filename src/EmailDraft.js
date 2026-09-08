@@ -128,15 +128,35 @@ const EmailDraft = {
       texto += ' The main driver is ' + driver.name + ': ' +
         this._dinero(driver.planned) + ' was budgeted and the actual came in at ' +
         this._dinero(driver.actual);
-      if (peso >= 50) texto += ', which alone accounts for ' + peso + '% of the gap';
+
+      // Una partida puede desviarse MÁS que su propia categoría, cuando otras
+      // partidas del mismo grupo se desvían en sentido contrario y compensan.
+      // Decir «explica el 126 % de la diferencia» es aritméticamente cierto y
+      // suena a error de cálculo. En ese caso se explica el fenómeno.
+      if (peso > 100) {
+        texto += ', more than the whole gap on its own — other items in this ' +
+          'category came in under plan and offset part of it';
+      } else if (peso >= 50) {
+        texto += ', which alone accounts for ' + peso + '% of the gap';
+      }
       texto += '.';
     }
 
-    const otros = (cat.drivers || []).slice(1, 3).filter(function (d) {
-      return Math.abs(d.deviationAmount) >= Config.MIN_AMOUNT_TO_NARRATE;
-    }, this);
+    // Solo se listan las partidas que empujan en la MISMA dirección que la
+    // categoría. Incluir las que fueron en sentido contrario y llamarlas
+    // «también por encima» sería sencillamente falso: contradice sus propias
+    // cifras en la misma frase.
+    const direccion = cat.deviationAmount > 0 ? 1 : -1;
+    const otros = (cat.drivers || []).slice(1).filter(function (d) {
+      return Math.abs(d.deviationAmount) >= Config.MIN_AMOUNT_TO_NARRATE &&
+        (d.deviationAmount > 0 ? 1 : -1) === direccion;
+    }, this).slice(0, 2);
+
     if (otros.length > 0) {
-      texto += ' Also above plan: ' + otros.map(function (d) {
+      const etiqueta = cat.kind === 'income'
+        ? ' Also below plan: '
+        : (direccion > 0 ? ' Also above plan: ' : ' Also under plan: ');
+      texto += etiqueta + otros.map(function (d) {
         return d.name + ' (' + this._dinero(d.actual) + ' vs ' + this._dinero(d.planned) + ')';
       }, this).join(' and ') + '.';
     }
