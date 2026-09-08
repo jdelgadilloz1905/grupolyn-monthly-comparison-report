@@ -23,6 +23,11 @@ dentro de la carpeta compartida.**
 >
 > ---
 >
+> **Ábranla directamente en Google Sheets, en línea.** La herramienta vive dentro del
+> documento, así que descargarla como Excel deja solo los datos, sin el menú ni el reporte. Y
+> si prefieren trabajar sobre una copia, tengan en cuenta que la configuración de acceso no se
+> duplica: en la copia habría que volver a instalar el código de administrador.
+>
 > **Para probarlo hacen falta tres cosas:**
 >
 > **El código de administrador es `XXXXXXXX`.** Sin él el menú no se desbloquea.
@@ -79,6 +84,11 @@ dentro de la carpeta compartida.**
 > made. It is written to be read without a technical background.
 >
 > ---
+>
+> **Open it directly in Google Sheets, online.** The tool lives inside the document, so
+> downloading it as Excel leaves you with the data only — no menu, no report. And if you would
+> rather work on a copy, note that the access configuration is not duplicated: the copy would
+> need the administrator code installed again.
 >
 > **Three things you'll need to try it:**
 >

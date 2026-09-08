@@ -212,7 +212,14 @@ Master Script Library y un proyecto de Google Cloud con la API de Apps Script ha
 
 ## Para probarlo tú mismo
 
-Tres cosas que necesitas saber antes de abrir la hoja, o parecerá que no funciona:
+**Ábrela directamente en Google Sheets, en línea.** La herramienta vive dentro del documento,
+no en el archivo que se descarga: bajarla como Excel deja los datos y las fórmulas, pero ni el
+menú ni el reporte. Y si prefieres trabajar sobre una copia, ten en cuenta que la
+configuración de acceso no se duplica —Google no copia las propiedades del script—, así que en
+la copia habría que volver a instalar el código de administrador.
+
+Hecha esa aclaración, tres cosas que conviene saber antes de abrir la hoja, o parecerá que no
+funciona:
 
 **1 · El código de administrador.** Va aparte de este documento. Sin él el menú no se
 desbloquea y no se puede generar nada.
