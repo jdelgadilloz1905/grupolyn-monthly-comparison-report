@@ -1,0 +1,14 @@
+# Nunca subir datos de cliente a un repositorio publico
+*.xlsx
+*.csv
+data/
+capturas-con-datos/
+
+# clasp
+.clasp.json
+.clasprc.json
+
+# Sistema
+node_modules/
+.DS_Store
+Thumbs.db

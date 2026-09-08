@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      font-size: 14px; color: #202124; margin: 0; padding: 22px 24px; background: #fff;
+      line-height: 1.55;
+    }
+    h2 { font-size: 16px; margin: 0 0 4px; }
+    h3 {
+      font-size: 13px; margin: 22px 0 6px; color: #1a73e8;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    p { margin: 0 0 10px; }
+    ol, ul { margin: 0 0 10px; padding-left: 20px; }
+    li { margin-bottom: 5px; }
+    .lead { color: #5f6368; margin-bottom: 4px; }
+    .box {
+      border-left: 3px solid #1a73e8; background: #f8f9fa;
+      padding: 10px 14px; margin: 12px 0; border-radius: 0 4px 4px 0;
+    }
+    .warn { border-left-color: #ea8600; background: #fef7e0; }
+    .stop { border-left-color: #c5221f; background: #fce8e6; }
+    code {
+      background: #f1f3f4; padding: 1px 5px; border-radius: 3px;
+      font-family: 'Roboto Mono', Consolas, monospace; font-size: 13px;
+    }
+    .foot {
+      margin-top: 24px; padding-top: 14px; border-top: 1px solid #e0e0e0;
+      color: #5f6368; font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Monthly Comparison Report</h2>
+  <p class="lead">Compares plan against actuals, finds what caused the gap, and drafts the email.</p>
+
+  <h3>How to use it</h3>
+  <ol>
+    <li>In <code>Monthly Budget</code>, select the <b>month</b> you want to analyse.</li>
+    <li><b>Admin → 🔓 Unlock…</b> and enter the administrator code.</li>
+    <li><b>Admin → 📊 Generate Monthly Comparison Report</b>.</li>
+    <li>Review the draft in Gmail and send it yourself.</li>
+  </ol>
+
+  <div class="box">
+    The <b>month is not chosen in the dialog</b>, it is driven by the sheet. If the two
+    disagreed, the report would carry one month's data under another month's label.
+  </div>
+
+  <h3>The deviation threshold</h3>
+  <p>
+    It sets how large a gap has to be before a category is explained. At the default
+    of <b>15%</b>, only categories that deviate by that much or more are broken down.
+  </p>
+  <ul>
+    <li><b>Lower it</b> (5%) to see more detail.</li>
+    <li><b>Raise it</b> (30%) to keep only the serious ones.</li>
+  </ul>
+
+  <h3>How to read the report</h3>
+  <ul>
+    <li><b>Highlighted rows</b> are the categories that deviated: red for overspending,
+      green for underspending.</li>
+    <li>Below each one, an explanation line and the <b>line items responsible</b>, sorted
+      by <b>amount</b> — not by percentage. A +300% gap on $10 is $30; a +20% gap on
+      $3,000 is $600. The money matters, not the percentage.</li>
+  </ul>
+
+  <div class="stop">
+    <b>The system never sends email.</b> It only creates drafts. The permissions it
+    requests from Google are compose-only and technically cannot send.
+  </div>
+
+  <h3>If something goes wrong</h3>
+  <ul>
+    <li><b>“A hand-made report already exists for that month”</b> — that month has a tab
+      created by the client and it is not overwritten. Rename it and try again.</li>
+    <li><b>“Restricted action”</b> — the session expired. Unlock again.</li>
+    <li><b>Repeated “Incorrect code”</b> — after 5 failures there is a 15-minute lockout.</li>
+    <li><b>No draft was created</b> — the client email was missing. The tab was still written.</li>
+  </ul>
+
+  <div class="warn">
+    The administrator session lasts <b>30 minutes</b> and then closes on its own.
+  </div>
+
+  <h3>An honest note about the access code</h3>
+  <p>
+    It is a <b>convenience barrier, not a security control</b>: it prevents accidental
+    actions, but anyone with edit access can open the Apps Script editor. The real
+    boundary is the file's sharing permissions. Every access attempt is logged.
+  </p>
+
+  <div class="foot">
+    Each category is compared against the <code>Total &lt;Category&gt;</code> row in
+    <code>Monthly Budget</code>. Line items marked <code>Hide</code> are ignored.
+  </div>
+
+</body>
+</html>

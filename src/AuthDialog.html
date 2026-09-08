@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      font-size: 14px;
+      color: #202124;
+      margin: 0;
+      padding: 20px;
+      background: #fff;
+    }
+    p.hint {
+      margin: 0 0 16px;
+      color: #5f6368;
+      line-height: 1.5;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    input[type="password"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 12px;
+      font-size: 14px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      outline: none;
+    }
+    input[type="password"]:focus { border-color: #1a73e8; }
+    .actions { margin-top: 20px; text-align: right; }
+    button {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 9px 20px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    button.primary { background: #1a73e8; color: #fff; }
+    button.primary:disabled { background: #a8c7fa; cursor: default; }
+    button.secondary { background: none; color: #1a73e8; margin-right: 8px; }
+    .error {
+      margin-top: 12px;
+      padding: 9px 12px;
+      background: #fce8e6;
+      color: #c5221f;
+      border-radius: 4px;
+      display: none;
+    }
+    .error.visible { display: block; }
+  </style>
+</head>
+<body>
+  <p class="hint">
+    Enter the administrator code to enable the menu tools.
+    The session stays open for 30&nbsp;minutes.
+  </p>
+
+  <label for="code">Administrator code</label>
+  <!--
+    type="password" NO es una cuestión estética: es la razón por la que este diálogo
+    existe en HtmlService en lugar de usar SpreadsheetApp.getUi().prompt(), que
+    muestra en pantalla lo que se escribe.
+  -->
+  <input type="password" id="code" autocomplete="off" autofocus>
+
+  <div class="error" id="error"></div>
+
+  <div class="actions">
+    <button class="secondary" onclick="google.script.host.close()">Cancel</button>
+    <button class="primary" id="submit" onclick="enviar()">Unlock</button>
+  </div>
+
+  <script>
+    const $code = document.getElementById('code');
+    const $error = document.getElementById('error');
+    const $submit = document.getElementById('submit');
+
+    $code.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') enviar();
+    });
+
+    function enviar() {
+      const valor = $code.value;
+      if (!valor) return;
+
+      $submit.disabled = true;
+      $error.classList.remove('visible');
+
+      google.script.run
+        .withSuccessHandler(alTerminar)
+        .withFailureHandler(alFallar)
+        .processUnlock(valor);
+    }
+
+    function alTerminar(resultado) {
+      if (resultado && resultado.ok) {
+        google.script.host.close();
+        return;
+      }
+      // El servidor devuelve siempre el mismo mensaje genérico: no revela si
+      // el fallo fue el código, el usuario o el bloqueo por intentos.
+      mostrarError((resultado && resultado.message) || 'Incorrect code.');
+    }
+
+    function alFallar(err) {
+      mostrarError('The code could not be verified. Please try again.');
+    }
+
+    function mostrarError(msg) {
+      $error.textContent = msg;
+      $error.classList.add('visible');
+      $submit.disabled = false;
+      $code.value = '';
+      $code.focus();
+    }
+  </script>
+</body>
+</html>
