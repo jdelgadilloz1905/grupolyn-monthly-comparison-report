@@ -88,7 +88,8 @@ const Auth = {
     if (!this.isConfigured()) {
       return {
         ok: false,
-        message: 'Administrator access is not configured yet. Run setupAdminCode() once.',
+        message: 'Administrator access has not been set up yet. ' +
+          'Ask whoever installed this tool to complete the one-time setup.',
       };
     }
 
@@ -123,7 +124,12 @@ const Auth = {
     this._cache().remove(this.CACHE_FAILS);
     this._audit('unlock', true, '');
 
-    return { ok: true, message: 'Admin menu unlocked for 30 minutes.' };
+    // El texto se deriva de la constante: cambiar SESSION_TTL sin tocar esta
+    // linea dejaria el mensaje mintiendo al usuario.
+    return {
+      ok: true,
+      message: 'Admin menu unlocked for ' + (this.SESSION_TTL / 60) + ' minutes.',
+    };
   },
 
   /** Cierra la sesión de administrador. */

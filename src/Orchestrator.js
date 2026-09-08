@@ -24,19 +24,21 @@ const Orchestrator = {
 
   /**
    * Lee el periodo que la hoja tiene seleccionado, para no obligar a teclearlo.
+   *
+   * NO se captura el error a propósito. Si la pestaña falta o se renombró, es
+   * preferible que el consultor lo sepa AHORA —con el mensaje concreto que da
+   * BudgetReader— y no que vea un formulario en blanco, lo rellene entero, y se
+   * entere al pulsar Generar.
+   *
    * @returns {{month: string, year: (number|string), threshold: number}}
    */
   readDefaults() {
-    try {
-      const model = BudgetReader.read(Config.BUDGET_SHEET);
-      return {
-        month: model.month || '',
-        year: model.year || '',
-        threshold: Config.DEFAULT_THRESHOLD,
-      };
-    } catch (e) {
-      return { month: '', year: '', threshold: Config.DEFAULT_THRESHOLD };
-    }
+    const model = BudgetReader.read(Config.BUDGET_SHEET);
+    return {
+      month: model.month || '',
+      year: model.year || '',
+      threshold: Config.DEFAULT_THRESHOLD,
+    };
   },
 
   /**

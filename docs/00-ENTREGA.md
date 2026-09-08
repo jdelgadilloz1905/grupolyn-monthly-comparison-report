@@ -52,13 +52,13 @@ números.
 
 Dos gastos:
 
-- **Café** — 10 € presupuestados, 40 € gastados. Un **+300 %**.
-- **Vivienda** — 3.000 € presupuestados, 3.600 € gastados. Un **+20 %**.
+- **Café** — $10 presupuestados, $40 gastados. Un **+300 %**.
+- **Vivienda** — $3.000 presupuestados, $3.600 gastados. Un **+20 %**.
 
 Si el sistema ordenara por porcentaje, le diría al cliente que su problema es el café. Y no:
-el café son 30 €, la vivienda son 600 €.
+el café son $30, la vivienda son $600.
 
-**El sistema ordena por impacto en euros, no por porcentaje.** Al cliente le importa dónde
+**El sistema ordena por impacto en dólares, no por porcentaje.** Al cliente le importa dónde
 se fue el dinero, no qué partida tiene el número más llamativo.
 
 ---
@@ -83,8 +83,8 @@ sistema usa *over budget* para gastos y *below plan* para ingresos.
 
 **Desconfía de los ahorros que no son ahorros.** Si un gasto fijo grande no registró ningún
 cargo —una hipoteca, un alquiler—, el sistema **no lo celebra**: avisa de que probablemente
-es un desfase de fecha y que ese cargo volverá. Un cliente que ve «has ahorrado 3.500 €» y
-se los gasta tiene un problema el mes siguiente.
+es un desfase de fecha y que ese cargo volverá. Un cliente que ve «has ahorrado $3.500» y
+se lo gasta tiene un problema el mes siguiente.
 
 ---
 
@@ -136,7 +136,7 @@ Donde el enunciado dejaba margen, decidí y lo dejo por escrito.
 | Pestañas llamadas `{Mes} Budget Comparison` | Es la convención que **ya usáis** en las cinco que tenéis hechas. No inventé otra |
 | **Las cinco pestañas existentes no se sobrescriben** | Son la especificación del formato. El sistema se niega y explica cómo proceder |
 | El periodo lo manda la hoja, no el diálogo | Si no coincidieran, el reporte llevaría datos de un mes etiquetados como otro |
-| Desviaciones por debajo de **50 $** no se comentan en el correo | Un +300 % sobre 10 $ es ruido, no información |
+| Desviaciones por debajo de **$50** no se comentan en el correo | Un +300 % sobre $10 es ruido, no información |
 | Si lo planificado es 0 y hay gasto, la desviación es **100 %** | Es la convención que aparece en **vuestros propios reportes**. Nunca se divide por cero |
 | Una partida que cuadra exactamente no se lista | No explica nada. Vuestros reportes tampoco las listan |
 | Una categoría sin ningún movimiento se omite | Saldría como `$0.00 / $0.00` y solo añade ruido |
@@ -176,7 +176,15 @@ vuestros reportes de referencia.
 
 ## El bonus: despliegue a muchas copias
 
-No está construido, y prefiero explicar por qué antes que entregar algo que no funcionaría.
+**El código está construido y probado; lo que falta es infraestructura vuestra para
+ejecutarlo.** Conviene separar las dos cosas, porque no son lo mismo.
+
+Lo que hay escrito vincula la biblioteca compartida sin duplicarla, es idempotente —ejecutarlo
+dos veces deja el mismo estado—, no aborta el lote si un archivo falla, y **no escribe nada
+salvo que se le pida explícitamente**: el modo de simulación es el valor por defecto. Su lógica
+está cubierta por pruebas.
+
+Lo que no pude hacer es **ejecutarlo de verdad**, y por dos razones distintas.
 
 El enunciado plantea pasar una lista de **URLs de hojas** y que el script las vincule a la
 biblioteca compartida. Al implementarlo encontré un límite del propio Google: **de la URL de
@@ -197,16 +205,37 @@ Tres caminos, de mejor a peor:
 3. **Mantener un mapa `cliente → script`,** rellenado una vez por cliente. Es lo único viable
    sobre las copias que ya existen, y es lo que implementa el código entregado.
 
-El código está escrito y probado en su lógica —vincula la biblioteca sin duplicarla, es
-idempotente, no aborta el lote si un archivo falla, y **no escribe nada salvo que se le pida
-explícitamente**—. Lo que falta es infraestructura vuestra: el identificador de la biblioteca
-y un proyecto de Google Cloud.
+Para ejecutarlo hacen falta dos cosas que solo vosotros podéis dar: el identificador de la
+Master Script Library y un proyecto de Google Cloud con la API de Apps Script habilitada.
+
+---
+
+## Para probarlo tú mismo
+
+Tres cosas que necesitas saber antes de abrir la hoja, o parecerá que no funciona:
+
+**1 · El código de administrador.** Va aparte de este documento. Sin él el menú no se
+desbloquea y no se puede generar nada.
+
+**2 · Google te avisará de que «no ha verificado esta aplicación».** Es lo normal en
+cualquier Apps Script sin publicar en el Marketplace, no una señal de alarma. El camino es
+*Configuración avanzada → Ir a GrupoLyN Report Engine → Permitir*. Lo aviso porque, sin
+contexto, esa pantalla parece que algo va mal.
+
+**3 · El borrador aparece en TU Gmail**, no en el mío. Apps Script se ejecuta con la cuenta
+de quien pulsa la opción, así que el correo se redacta desde la tuya. Para probar sin enviar
+nada a nadie, pon tu propia dirección en el campo de cliente.
+
+Y una recomendación: **genera primero un mes que no tenga reporte hecho a mano** —marzo o
+julio—. Si eliges uno de los cinco que ya tenéis, el sistema se negará a sobrescribirlo, que
+es el comportamiento correcto pero no el que quieres para una primera prueba.
 
 ---
 
 ## Lo que no está terminado
 
-- **El despliegue masivo**, por lo anterior.
+- **La ejecución real del despliegue masivo**, por lo anterior. El código está; falta el
+  entorno donde correrlo.
 - **No he ejecutado nada sobre hojas de clientes reales**, solo sobre mi copia.
 - El correo de prueba se generó contra mi propia dirección, no contra la de ningún cliente.
 
