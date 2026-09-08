@@ -144,7 +144,7 @@ Cada tarea lleva **mínimo dos criterios de aceptación** (regla 2) y **cómo se
 | 2 | Umbral configurable, 15 % por defecto | Generar con 15 % y con 50 %: distinto número de desviaciones |
 | 3 | Si falta la pestaña, error claro y no escribe nada | Renombrar la pestaña en una copia y ejecutar |
 
-### T-10 · Prueba de integración end-to-end 🟨
+### T-10 · Prueba de integración end-to-end ✅
 
 **Objetivo:** verificar el pipeline completo sobre datos reales.
 **Depende de:** T-09.
