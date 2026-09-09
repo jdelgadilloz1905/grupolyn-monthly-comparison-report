@@ -104,7 +104,7 @@ permitiría enviar**. No existe un permiso de Gmail que deje crear borradores y 
 Así que la garantía no viene del permiso, viene del código: **no contiene ninguna llamada de
 envío**, solo `createDraft()`. Y hay una prueba automática que **falla si alguien añade una**.
 
-Lo aclaro porque en una primera redacción afírmaba que el permiso hacía imposible el envío. Al
+Lo aclaro porque en una primera redacción afirmaba que el permiso hacía imposible el envío. Al
 verificarlo contra la pantalla de permisos de Google resultó no ser cierto, y prefiero corregirlo
 antes que dejar una garantía que no se sostiene.
 
