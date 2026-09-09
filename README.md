@@ -130,3 +130,4 @@ reproducen solo la *forma* de cada caso límite.
 | [03-plan-de-tareas.md](docs/03-plan-de-tareas.md) | Tareas con criterios de aceptación |
 | [05-guia-de-validacion.md](docs/05-guia-de-validacion.md) | Recorrido de validación paso a paso |
 | [07-despliegue-masivo.md](docs/07-despliegue-masivo.md) | El bonus ejecutado: registro real y los tres fallos que sacó |
+| [08-actualizacion-tarea-3.md](docs/08-actualizacion-tarea-3.md) | Nota para el evaluador: qué se añadió y cómo comprobarlo |
