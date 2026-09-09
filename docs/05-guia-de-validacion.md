@@ -14,7 +14,7 @@ cd "c:/Users/HP Owner/Proyectos/grupolyn-test"
 node tools/run-tests-local.js
 ```
 
-✅ **Esperado:** `136/136 asserts correctos` y salida con código 0.
+✅ **Esperado:** `201/201 asserts correctos` y salida con código 0.
 
 ❌ **Si falla:** los nombres de los tests que fallan indican qué se rompió. Nada de lo siguiente
 tiene sentido hasta que esto esté verde.
@@ -34,7 +34,7 @@ Es el paso más importante: hasta aquí **nada se ha ejecutado en el motor de Go
    → *Configuración avanzada* → *Ir a GrupoLyN Report Engine (no seguro)*
 7. Revisa los permisos que pide y **Permitir**
 
-✅ **Esperado:** en el panel de **Registro de ejecución** aparece `136/136 asserts OK`.
+✅ **Esperado:** en el panel de **Registro de ejecución** aparece `201/201 asserts OK`.
 
 ❌ **Si algún test falla aquí pero pasaba en local:** es una diferencia real entre el motor de Node
 y el de Apps Script. Copia el nombre del test que falla y el mensaje: eso basta para localizarlo.
@@ -205,6 +205,53 @@ El sistema no envía nunca.
 
 ---
 
+## Paso 13 · El despliegue masivo (bonus)
+
+Los pasos anteriores validan la herramienta dentro de **una** hoja. Este valida que se puede
+poner en **muchas** sin copiar el código en ninguna.
+
+Ya está ejecutado: hay dos hojas desplegadas de verdad. Lo que sigue es comprobarlo.
+
+**13.1 · Abre una hoja desplegada**
+
+[Cliente DEMO A](https://docs.google.com/spreadsheets/d/1jalBI4O0-4pIY2qvgzQTWvUt2zmd9DlN9M2fIkzgmgk/edit)
+· [Cliente DEMO B](https://docs.google.com/spreadsheets/d/1o8Mbh1JfLbVqp-hY7fwmOj1k4QrRpK_sRPoMFcQo4PE/edit)
+
+✅ **Esperado:** aparece el menú **Admin** con **🔓 Unlock…** y **❓ Help**, igual que en la hoja
+principal. Son hojas vacías: no tienen presupuesto que analizar. Lo que demuestran es que el
+menú llega sin que nadie haya escrito código dentro.
+
+**13.2 · Mira lo que hay realmente dentro**
+
+**Extensiones → Apps Script** en esa misma hoja.
+
+✅ **Esperado:** **dos archivos y nada más** — el manifiesto y `GrupoLynBootstrap`, unas 50
+líneas que solo delegan:
+
+```javascript
+function onOpen() { grupolynBind_(); GrupoLynLib.onOpen(); }
+```
+
+Ni el motor de cálculo, ni el lector de la hoja, ni el redactor del correo. Todo eso vive una
+sola vez, en la biblioteca. Publicar una versión nueva actualiza a los 50 clientes sin volver a
+tocar un archivo.
+
+**13.3 · Comprueba la idempotencia tú mismo**
+
+```bash
+node tools/deploy-run.js          # simulación, no escribe
+node tools/deploy-verify.js       # relee del servidor y comprueba
+```
+
+✅ **Esperado:** `ya al dia: 2` y `TODO CORRECTO`. Volver a lanzarlo no reescribe nada, porque
+el arranque lleva su propia marca de versión.
+
+Para verlo escribir de verdad hace falta `--escribir` y ser el propietario de los archivos. El
+registro de la ejecución original, con los tres fallos que sacó, está en
+[07-despliegue-masivo.md](07-despliegue-masivo.md).
+
+---
+
 ## Resumen de lo que valida cada paso
 
 | Paso | Qué demuestra |
@@ -218,6 +265,7 @@ El sistema no envía nunca.
 | 8–9 | El reporte reproduce el formato de referencia |
 | 10 | El correo explica, y **nunca se envía solo** |
 | 11 | Hay rastro auditable |
+| 13 | **El despliegue llega a muchas hojas sin copiar el código en ninguna** |
 
 ---
 
@@ -225,5 +273,5 @@ El sistema no envía nunca.
 
 Dime **el número del paso** y qué viste. Con eso localizo el problema sin necesidad de más contexto.
 
-Los pasos **4, 7, 9 y 10** son los que ningún test automático puede cubrir: dependen de mirar la
+Los pasos **4, 7, 9, 10 y 13.1** son los que ningún test automático puede cubrir: dependen de mirar la
 pantalla. Son, por eso mismo, los que más importan de esta guía.
