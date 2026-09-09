@@ -57,10 +57,26 @@ dentro de la carpeta compartida.**
 > Cualquiera con permiso de edición sobre la hoja puede abrir el editor de Apps Script. Lo digo
 > en el documento porque prefiero ser explícito antes que dar a entender más de lo que hay.
 >
-> El bonus del despliegue masivo está construido y probado en su lógica, pero no he podido
-> ejecutarlo: hace falta el identificador de la Master Script Library y un proyecto de Google
-> Cloud. En el documento explico el enfoque y por qué la solución correcta a escala es un
-> complemento de Workspace y no inyectar código archivo por archivo.
+> **El bonus del despliegue masivo está ejecutado, no solo diseñado.** Publiqué la biblioteca
+> compartida y la desplegué sobre dos hojas creadas para la prueba. Cada una tiene ahora el
+> menú `Admin` funcionando, y dentro de su editor no hay más que el manifiesto y unas 50 líneas
+> que delegan en la biblioteca: publicar una versión nueva actualizaría a los 50 clientes sin
+> volver a tocar un archivo.
+>
+> Pueden abrirlas:
+> [Cliente DEMO A](https://docs.google.com/spreadsheets/d/1jalBI4O0-4pIY2qvgzQTWvUt2zmd9DlN9M2fIkzgmgk/edit) ·
+> [Cliente DEMO B](https://docs.google.com/spreadsheets/d/1o8Mbh1JfLbVqp-hY7fwmOj1k4QrRpK_sRPoMFcQo4PE/edit)
+>
+> Vale la pena decir que **ejecutarlo sacó tres fallos que revisar el código no habría
+> encontrado**, porque los tres solo aparecen en tiempo de ejecución. El más serio: una
+> biblioteca compartida lee sus propias propiedades, no las de la hoja que la invoca, así que
+> los 50 clientes habrían compartido un único código de administrador y un único contador de
+> intentos fallidos — uno se equivoca cinco veces y bloquea a los otros 49. Está corregido y
+> con una prueba que lo reproduce. El registro completo está en el repositorio.
+>
+> Lo que sigue siendo manual es instalar el código de administrador una vez por hoja: Google no
+> copia las propiedades del script al duplicar un documento, y no hay API para escribirlas. Es
+> un argumento más a favor del complemento de Workspace, que es la solución correcta a escala.
 >
 > Quedo atento a cualquier duda.
 >
@@ -120,10 +136,26 @@ dentro de la carpeta compartida.**
 > edit access to the sheet can open the Apps Script editor. I say so in the document because I
 > would rather be explicit than imply more than there is.
 >
-> The mass-deployment bonus is built and its logic is tested, but I could not run it: it needs
-> the Master Script Library identifier and a Google Cloud project. The document explains the
-> approach and why the right answer at scale is a Workspace add-on rather than injecting code
-> file by file.
+> **The mass-deployment bonus is executed, not just designed.** I published the shared library
+> and deployed it to two sheets created for the test. Each now has the `Admin` menu working,
+> and inside its editor there is nothing but the manifest and about 50 lines delegating to the
+> library: publishing a new library version would update all 50 clients without touching a
+> single file again.
+>
+> You can open them:
+> [Client DEMO A](https://docs.google.com/spreadsheets/d/1jalBI4O0-4pIY2qvgzQTWvUt2zmd9DlN9M2fIkzgmgk/edit) ·
+> [Client DEMO B](https://docs.google.com/spreadsheets/d/1o8Mbh1JfLbVqp-hY7fwmOj1k4QrRpK_sRPoMFcQo4PE/edit)
+>
+> Worth saying that **running it surfaced three bugs that reading the code would not have
+> found**, because all three only appear at runtime. The most serious: a shared library reads
+> its own properties, not those of the sheet calling it, so all 50 clients would have shared a
+> single administrator code and a single failed-attempt counter — one person gets it wrong five
+> times and locks out the other 49. Fixed, with a test that reproduces it. The full log is in
+> the repository.
+>
+> What stays manual is installing the administrator code once per sheet: Google does not copy
+> script properties when a document is duplicated, and there is no API to write them. One more
+> argument for the Workspace add-on, which is the right answer at scale.
 >
 > Happy to answer any questions.
 >
@@ -135,6 +167,8 @@ dentro de la carpeta compartida.**
 ## Antes de enviar
 
 - [ ] Sustituir `XXXXXXXX` por el código real
+- [ ] **La Master Script Library compartida en modo lectura por enlace.** Sin eso, las dos
+      hojas DEMO se abren sin menú: su script no puede resolver la biblioteca
 - [ ] La hoja compartida **con permiso de edición** — lectura no basta, el script escribe
 - [ ] El documento de entrega dentro de la carpeta, como Google Doc o PDF
 - [ ] La carpeta compartida con **los correos concretos** de quien evalúa
