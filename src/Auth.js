@@ -41,6 +41,41 @@ const Auth = {
   MAX_ATTEMPTS: 5,
 
   // -------------------------------------------------------------------------
+  // Almacenes del anfitrión
+  // -------------------------------------------------------------------------
+
+  /** @private Inyectados por bindHost(). Nulos en instalación clásica. */
+  _hostProps: null,
+  _hostCache: null,
+
+  /**
+   * Inyecta los almacenes de quien invoca. Solo lo usa el despliegue por biblioteca.
+   *
+   * MOTIVO: cuando este código corre como BIBLIOTECA compartida,
+   * `PropertiesService.getScriptProperties()` devuelve las propiedades de la
+   * biblioteca, no las de la hoja del cliente que la llama. Sin corregirlo, los
+   * 50 clientes compartirían un único código de administrador y un único
+   * contador de intentos: uno falla cinco veces y bloquea a todos los demás.
+   *
+   * El arranque generado por el Deployer llama a esto en cada punto de entrada,
+   * pasando los almacenes del propio cliente. En la instalación clásica —el
+   * código vive dentro de la hoja— nadie lo llama y se usan los de siempre.
+   *
+   * @param {GoogleAppsScript.Properties.Properties} props
+   * @param {GoogleAppsScript.Cache.Cache} cache
+   */
+  bindHost(props, cache) {
+    this._hostProps = props || null;
+    this._hostCache = cache || null;
+    return this;
+  },
+
+  /** @private */
+  _props() {
+    return this._hostProps || PropertiesService.getScriptProperties();
+  },
+
+  // -------------------------------------------------------------------------
   // Instalación (se ejecuta UNA vez, a mano, desde el editor)
   // -------------------------------------------------------------------------
 
@@ -56,7 +91,7 @@ const Auth = {
       throw new Error('The administrator code must be at least 8 characters long.');
     }
 
-    const props = PropertiesService.getScriptProperties();
+    const props = this._props();
     const salt = this._randomSalt();
 
     props.setProperty(this.PROP_SALT, salt);
@@ -71,7 +106,7 @@ const Auth = {
 
   /** ¿Está el sistema configurado? */
   isConfigured() {
-    const props = PropertiesService.getScriptProperties();
+    const props = this._props();
     return !!(props.getProperty(this.PROP_HASH) && props.getProperty(this.PROP_SALT));
   },
 
@@ -109,7 +144,7 @@ const Auth = {
       return { ok: false, message: 'Incorrect code.' };
     }
 
-    const props = PropertiesService.getScriptProperties();
+    const props = this._props();
     const salt = props.getProperty(this.PROP_SALT);
     const expected = props.getProperty(this.PROP_HASH);
 
@@ -198,7 +233,7 @@ const Auth = {
 
   /** @private */
   _isAllowed(email) {
-    const raw = PropertiesService.getScriptProperties().getProperty(this.PROP_ALLOWLIST);
+    const raw = this._props().getProperty(this.PROP_ALLOWLIST);
     // Sin lista blanca configurada, solo manda el código.
     if (!raw) return true;
 
@@ -217,7 +252,7 @@ const Auth = {
 
   /** @private */
   _cache() {
-    return CacheService.getUserCache();
+    return this._hostCache || CacheService.getUserCache();
   },
 
   /** @private */

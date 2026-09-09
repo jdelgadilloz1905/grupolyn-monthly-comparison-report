@@ -10,7 +10,7 @@ Plataforma: Google Sheets + Apps Script
 | | |
 |---|---|
 | **La hoja** | `GrupoLyN — Plan Financiero (JD)`, con el menú `Admin` funcionando y una pestaña `Mar Budget Comparison` generada por la herramienta |
-| **El código** | 15 archivos de Apps Script, más 153 comprobaciones automáticas |
+| **El código** | 15 archivos de Apps Script, más 201 comprobaciones automáticas |
 | **Este documento** | El enfoque, las decisiones y los supuestos |
 
 ---
@@ -159,7 +159,7 @@ sobrescribe sin que se le renombre antes la pestaña.
 
 ## Cómo sé que funciona
 
-Escribí **153 comprobaciones automáticas** que se ejecutan en segundos. No prueban que el
+Escribí **201 comprobaciones automáticas** que se ejecutan en segundos. No prueban que el
 código «parece bien»: prueban casos concretos que encontré revisando vuestros datos reales.
 
 Los que más me preocupaban:
@@ -184,17 +184,32 @@ vuestros reportes de referencia.
 
 ## El bonus: despliegue a muchas copias
 
-**El código está construido y probado; lo que falta es infraestructura vuestra para
-ejecutarlo.** Conviene separar las dos cosas, porque no son lo mismo.
+**Está ejecutado, no solo escrito.** Desplegué de verdad la biblioteca compartida sobre dos
+hojas de cliente creadas para la prueba, y el registro completo está en
+[07-despliegue-masivo.md](07-despliegue-masivo.md).
 
-Lo que hay escrito vincula la biblioteca compartida sin duplicarla, es idempotente —ejecutarlo
-dos veces deja el mismo estado—, no aborta el lote si un archivo falla, y **no escribe nada
-salvo que se le pida explícitamente**: el modo de simulación es el valor por defecto. Su lógica
-está cubierta por pruebas.
+Vincula la biblioteca sin duplicarla, es idempotente —la segunda pasada informó de «ya al día»
+y no escribió nada—, no aborta el lote si un archivo falla, y **no escribe salvo que se le pida
+explícitamente**: la simulación es el valor por defecto.
 
-Lo que no pude hacer es **ejecutarlo de verdad**, y por dos razones distintas.
+Ejecutarlo de verdad valió la pena: **sacó tres fallos que ninguna lectura del código habría
+encontrado**, porque los tres se manifiestan dentro de la hoja del cliente, en tiempo de
+ejecución.
 
-El enunciado plantea pasar una lista de **URLs de hojas** y que el script las vincule a la
+1. El menú ofrece **Ayuda**, pero el arranque generado no definía `showHelpDialog`. La opción
+   se dibujaba y al pulsarla daba «no se encontró la función».
+2. Apps Script deduce los permisos leyendo el código. A través de una biblioteca no ve nada que
+   deducir, así que el manifiesto del cliente salía **sin un solo permiso**: menú dibujado y
+   todo lo demás fallando.
+3. El más serio. Una biblioteca que llama a `PropertiesService` lee **sus propias** propiedades,
+   no las de la hoja que la invoca. Los 50 clientes habrían compartido un único código de
+   administrador y un único contador de intentos: **uno se equivoca cinco veces y bloquea a los
+   otros 49**. La solución es que cada hoja le entregue sus almacenes al invocar.
+
+Los tres tienen ahora una prueba que los reproduce, y verifiqué que esas pruebas fallan si se
+revierte cada corrección.
+
+Sobre la lista de URLs: el enunciado plantea pasar una lista de **URLs de hojas** y que el script las vincule a la
 biblioteca compartida. Al implementarlo encontré un límite del propio Google: **de la URL de
 una hoja no se puede obtener el identificador de su script**. Los scripts vinculados a un
 documento no aparecen en Drive ni los expone ninguna API pública.
@@ -213,8 +228,10 @@ Tres caminos, de mejor a peor:
 3. **Mantener un mapa `cliente → script`,** rellenado una vez por cliente. Es lo único viable
    sobre las copias que ya existen, y es lo que implementa el código entregado.
 
-Para ejecutarlo hacen falta dos cosas que solo vosotros podéis dar: el identificador de la
-Master Script Library y un proyecto de Google Cloud con la API de Apps Script habilitada.
+Un apunte práctico que también salió de ejecutarlo: **no hace falta un proyecto de Google Cloud
+propio.** Creía que sí; lo comprobé y la API de Apps Script responde con las credenciales
+normales de `clasp`. Lo que sí hace falta es que la biblioteca esté compartida con las cuentas
+que la van a usar.
 
 ---
 
@@ -249,9 +266,12 @@ es el comportamiento correcto pero no el que quieres para una primera prueba.
 
 ## Lo que no está terminado
 
-- **La ejecución real del despliegue masivo**, por lo anterior. El código está; falta el
-  entorno donde correrlo.
-- **No he ejecutado nada sobre hojas de clientes reales**, solo sobre mi copia.
+- **No he ejecutado nada sobre hojas de clientes reales.** El despliegue masivo corrió sobre
+  dos hojas creadas para la prueba, y el reporte sobre mi copia. Nada tocó un archivo vuestro.
+- **La instalación del código de administrador sigue siendo un paso manual por hoja.** Google
+  no copia las propiedades del script al duplicar una hoja, así que no hay forma de
+  automatizarlo desde fuera. El arranque desplegado incluye la función; alguien tiene que
+  ejecutarla una vez en cada cliente.
 - El correo de prueba se generó contra mi propia dirección, no contra la de ningún cliente.
 
 ---

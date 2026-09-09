@@ -1,0 +1,22 @@
+{
+  "library": {
+    "scriptId": "1shu0EmR7Ap5ng9qD658tXppMoCmi0MldtgPYLiQox64O1E9fW6GT2ZKb",
+    "version": 1,
+    "identifier": "GrupoLynLib",
+    "url": "https://script.google.com/d/1shu0EmR7Ap5ng9qD658tXppMoCmi0MldtgPYLiQox64O1E9fW6GT2ZKb/edit"
+  },
+  "targets": [
+    {
+      "name": "Cliente DEMO A",
+      "scriptId": "1sK0ib1evqLL3znyNQgHuh3gySdF44phSN4_9zgrB4ND55GMkkjyxLTcr",
+      "sheetId": "1jalBI4O0-4pIY2qvgzQTWvUt2zmd9DlN9M2fIkzgmgk",
+      "sheetUrl": "https://docs.google.com/spreadsheets/d/1jalBI4O0-4pIY2qvgzQTWvUt2zmd9DlN9M2fIkzgmgk/edit"
+    },
+    {
+      "name": "Cliente DEMO B",
+      "scriptId": "1LZrOEAgxnXRgffyauag12OcFe7w63av5AvOcvJAgZ_pb_LlkUoPO8WLA",
+      "sheetId": "1o8Mbh1JfLbVqp-hY7fwmOj1k4QrRpK_sRPoMFcQo4PE",
+      "sheetUrl": "https://docs.google.com/spreadsheets/d/1o8Mbh1JfLbVqp-hY7fwmOj1k4QrRpK_sRPoMFcQo4PE/edit"
+    }
+  ]
+}

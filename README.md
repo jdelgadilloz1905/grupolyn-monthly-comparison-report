@@ -41,6 +41,22 @@ Cuando una categoría se desvía, hay que decidir **qué partidas se muestran**.
 Ordenar por porcentaje diría que el problema es el café. **El sistema ordena por importe**,
 porque al cliente le importa dónde se fue el dinero, no qué número es más llamativo.
 
+## El bonus, ejecutado
+
+El despliegue masivo no se quedó en diseño: se desplegó de verdad sobre dos hojas creadas para
+la prueba. Cada una acabó con **dos archivos** —el manifiesto y 50 líneas de arranque que solo
+delegan en la biblioteca compartida—, y la segunda pasada no escribió nada.
+
+Ejecutarlo sacó **tres fallos invisibles a la lectura del código**, entre ellos que los 50
+clientes habrían compartido un único código de administrador y un único contador de intentos.
+El registro completo está en [07-despliegue-masivo.md](docs/07-despliegue-masivo.md).
+
+```bash
+node tools/deploy-run.js               # simulación: informa y no escribe
+node tools/deploy-run.js --escribir    # despliega
+node tools/deploy-verify.js            # relee del servidor y comprueba
+```
+
 ## Estructura
 
 ```
@@ -52,20 +68,23 @@ src/
   Auth.js              Hash, sesión, bloqueo por intentos y auditoría
   Menu.js              Menú Admin y puntos de entrada
   Orchestrator.js      Une las piezas
-  Deployer.js          Despliegue masivo (bonus)
+  Deployer.js          Despliegue masivo por biblioteca (bonus). EJECUTADO
   Config.js            Umbrales, formatos y convenciones
-  Tests.js             153 comprobaciones
+  Tests.js             201 comprobaciones
   Fixtures.js          Datos de prueba SINTÉTICOS
   *.html               Diálogos (contraseña, parámetros, ayuda)
 
 tools/                 Andamiaje local. No se sube a Apps Script
+  run-tests-local.js   Suite completa contra dobles de los servicios de Google
+  deploy-run.js        Lanza el despliegue masivo. Simula por defecto
+  deploy-verify.js     Relee del servidor y comprueba lo desplegado
 docs/                  Entrega, casos de uso, diagramas, plan y guía de validación
 ```
 
 ## Pruebas
 
 ```bash
-node tools/run-tests-local.js     # 153 asserts, menos de un segundo
+node tools/run-tests-local.js     # 201 asserts, menos de un segundo
 ```
 
 Los mismos tests corren dentro de Apps Script ejecutando `runAllTests()` desde el editor. En
@@ -110,3 +129,4 @@ reproducen solo la *forma* de cada caso límite.
 | [02-diagramas-flujo.md](docs/02-diagramas-flujo.md) | Diagramas Mermaid |
 | [03-plan-de-tareas.md](docs/03-plan-de-tareas.md) | Tareas con criterios de aceptación |
 | [05-guia-de-validacion.md](docs/05-guia-de-validacion.md) | Recorrido de validación paso a paso |
+| [07-despliegue-masivo.md](docs/07-despliegue-masivo.md) | El bonus ejecutado: registro real y los tres fallos que sacó |

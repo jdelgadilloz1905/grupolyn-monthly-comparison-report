@@ -103,6 +103,33 @@ function showReportDialog() {
   return Orchestrator.showReportDialog();
 }
 
+// ---------------------------------------------------------------------------
+// Puntos de entrada que solo usa el despliegue por biblioteca
+//
+// Una biblioteca de Apps Script expone sus FUNCIONES de nivel superior. Los
+// objetos declarados con `const` (Auth, Orchestrator…) no forman parte del
+// contrato público, así que lo que el arranque del cliente necesita llamar se
+// declara aquí explícitamente. En la instalación clásica sobran, y no molestan.
+// ---------------------------------------------------------------------------
+
+/**
+ * Conecta la biblioteca con los almacenes de la hoja que la invoca.
+ * Ver el motivo en `Auth.bindHost()`: sin esto, todos los clientes compartirían
+ * un mismo código de administrador y un mismo bloqueo.
+ */
+function bindHost(props, cache) {
+  return Auth.bindHost(props, cache);
+}
+
+/**
+ * Instalación del código de administrador en un cliente desplegado.
+ * Recibe el código por parámetro en lugar de tenerlo escrito, que es lo que
+ * hace `setupAdmin()`: en el modo biblioteca no hay código de cliente que editar.
+ */
+function installAdminCode(code, allowedEmails) {
+  return Auth.setupAdminCode(code, allowedEmails);
+}
+
 /**
  * Instalación inicial. Se ejecuta UNA vez, a mano, desde el editor.
  *

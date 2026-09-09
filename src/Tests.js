@@ -760,6 +760,141 @@ function test_despliegueEsDryRunPorDefecto() {
   assertEquals(explicito.dryRun, false, 'escribir exige pedirlo expresamente');
 }
 
+// --- Lo que el despliegue por biblioteca no puede olvidar ------------------
+//
+// Los tres tests siguientes salieron de desplegar de verdad. Ninguno lo habria
+// detectado leyendo el codigo: los tres fallan en tiempo de ejecucion, dentro
+// de la hoja del cliente, cuando alguien pulsa una opcion del menu.
+
+function test_despliegueExponeTodoLoQueElMenuInvoca() {
+  // El menu de Menu.js llama a estas funciones POR NOMBRE. Si el arranque no
+  // las define, la opcion aparece dibujada y al pulsarla da «no se encontro
+  // la funcion». Lo mismo con los diálogos: google.script.run resuelve contra
+  // el script del cliente, nunca contra la biblioteca.
+  const bootstrap = Deployer.buildBootstrap(OPTS_DESPLIEGUE);
+
+  ['onOpen', 'showAuthDialog', 'showHelpDialog', 'processUnlock',
+    'lockAdmin', 'showReportDialog', 'runReportGeneration', 'setupAdmin']
+    .forEach(function (nombre) {
+      assertTrue(bootstrap.indexOf('function ' + nombre + '(') !== -1,
+        'el arranque define ' + nombre + '()');
+    });
+}
+
+function test_despliegueEntregaALaBibliotecaLosAlmacenesDelCliente() {
+  // Sin esto, la biblioteca leeria SUS propiedades: un unico codigo de
+  // administrador y un unico contador de intentos para los 50 clientes.
+  const bootstrap = Deployer.buildBootstrap(OPTS_DESPLIEGUE);
+
+  assertTrue(bootstrap.indexOf('PropertiesService.getScriptProperties()') !== -1,
+    'el arranque toma las propiedades de SU hoja');
+  assertTrue(bootstrap.indexOf('CacheService.getUserCache()') !== -1,
+    'y su propia cache');
+
+  // Y cada punto de entrada tiene que enlazarlas ANTES de delegar.
+  const entradas = bootstrap.split('\n').filter(function (l) {
+    return /^function (onOpen|showAuthDialog|showHelpDialog|processUnlock|lockAdmin|showReportDialog|runReportGeneration)\(/.test(l);
+  });
+  assertEquals(entradas.length, 7, 'estan los siete puntos de entrada en una linea');
+  entradas.forEach(function (l) {
+    assertTrue(l.indexOf('grupolynBind_()') !== -1,
+      'enlaza antes de delegar: ' + l.split('(')[0]);
+  });
+}
+
+function test_despliegueDeclaraLosPermisosEnElManifiesto() {
+  // Apps Script deduce los permisos leyendo el codigo. A traves de una
+  // biblioteca no ve nada: hay que declararlos a mano en el cliente.
+  const salida = JSON.parse(Deployer.mergeManifest(
+    JSON.stringify({ timeZone: 'X' }), OPTS_DESPLIEGUE));
+
+  Deployer.REQUIRED_SCOPES.forEach(function (s) {
+    assertTrue((salida.oauthScopes || []).indexOf(s) !== -1,
+      'declara el permiso ' + s.split('/auth/')[1]);
+  });
+}
+
+function test_despliegueConservaLosPermisosQueElClienteYaTenia() {
+  // La hoja puede llevar otro script encima con necesidades propias.
+  const ajeno = 'https://www.googleapis.com/auth/drive.readonly';
+  const salida = JSON.parse(Deployer.mergeManifest(
+    JSON.stringify({ timeZone: 'X', oauthScopes: [ajeno] }), OPTS_DESPLIEGUE));
+
+  assertTrue(salida.oauthScopes.indexOf(ajeno) !== -1,
+    'no se le quita al cliente un permiso que ya pedia');
+
+  // Y aplicarlo dos veces no duplica.
+  const dos = JSON.parse(Deployer.mergeManifest(
+    JSON.stringify(salida), OPTS_DESPLIEGUE));
+  assertEquals(dos.oauthScopes.length, salida.oauthScopes.length,
+    'y repetir el despliegue no duplica permisos');
+}
+
+function test_labibliotecaExponeLoQueElArranqueNecesita() {
+  // Una biblioteca de Apps Script expone sus FUNCIONES de nivel superior.
+  // `const Auth = {...}` no forma parte del contrato publico, asi que si el
+  // arranque llama a GrupoLynLib.bindHost() tiene que haber una funcion suelta
+  // con ese nombre. Se comprueba sobre el fuente real.
+  const fuente = (typeof __sources !== 'undefined' && __sources['Menu.js']) || '';
+  assertTrue(fuente.length > 0, 'se pudo leer el fuente de Menu.js');
+
+  const bootstrap = Deployer.buildBootstrap(OPTS_DESPLIEGUE);
+  const id = OPTS_DESPLIEGUE.libraryIdentifier;
+
+  // Toda llamada `GrupoLynLib.algo(` del arranque exige `function algo(` en la biblioteca.
+  const invocadas = {};
+  const re = new RegExp(id + '\\.([A-Za-z_$][\\w$]*)\\s*\\(', 'g');
+  let m;
+  while ((m = re.exec(bootstrap)) !== null) { invocadas[m[1]] = true; }
+
+  const globales = (__sources['Menu.js'] + '\n' + (__sources['Orchestrator.js'] || ''))
+    .split('\n')
+    .map(function (l) { const g = l.match(/^function\s+([A-Za-z_$][\w$]*)\s*\(/); return g && g[1]; })
+    .filter(Boolean);
+
+  Object.keys(invocadas).forEach(function (nombre) {
+    assertTrue(globales.indexOf(nombre) !== -1,
+      'la biblioteca expone ' + nombre + '() como funcion de nivel superior');
+  });
+}
+
+function test_elCodigoDeAdminEsPropioDeCadaHoja() {
+  // El fallo que esto impide: cliente A configura su codigo, y el de cliente B
+  // queda pisado porque ambos escriben en las propiedades de la biblioteca.
+  // Almacen minimo en memoria, uno por hoja.
+  function almacen() {
+    const datos = {};
+    return {
+      getProperty: function (k) { return k in datos ? datos[k] : null; },
+      setProperty: function (k, v) { datos[k] = String(v); },
+      deleteProperty: function (k) { delete datos[k]; },
+      getProperties: function () { return datos; },
+      get: function (k) { return k in datos ? datos[k] : null; },
+      put: function (k, v) { datos[k] = String(v); },
+      remove: function (k) { delete datos[k]; },
+    };
+  }
+
+  const propsA = almacen();
+  const propsB = almacen();
+
+  Auth.bindHost(propsA, almacen());
+  Auth.setupAdminCode('codigo-de-A');
+  const hashA = propsA.getProperty(Auth.PROP_HASH);
+  assertTrue(!!hashA, 'A quedo configurado');
+
+  Auth.bindHost(propsB, almacen());
+  Auth.setupAdminCode('codigo-de-B');
+
+  assertEquals(propsA.getProperty(Auth.PROP_HASH), hashA,
+    'configurar B no toca lo de A');
+  assertTrue(propsB.getProperty(Auth.PROP_HASH) !== hashA,
+    'y cada hoja guarda un hash distinto');
+
+  // Devolver Auth a su estado normal para no contaminar el resto de la suite.
+  Auth.bindHost(null, null);
+}
+
 
 // --- El periodo lo manda la hoja, no el dialogo ----------------------------
 function test_periodoDistintoAlDeLaHojaSeRechaza() {
@@ -1026,6 +1161,12 @@ function runAllTests() {
   test_despliegueRechazaEntradasSinScriptId();
   test_despliegueAislaLosFallos();
   test_despliegueEsDryRunPorDefecto();
+  test_despliegueExponeTodoLoQueElMenuInvoca();
+  test_despliegueEntregaALaBibliotecaLosAlmacenesDelCliente();
+  test_despliegueDeclaraLosPermisosEnElManifiesto();
+  test_despliegueConservaLosPermisosQueElClienteYaTenia();
+  test_labibliotecaExponeLoQueElArranqueNecesita();
+  test_elCodigoDeAdminEsPropioDeCadaHoja();
 
 
 

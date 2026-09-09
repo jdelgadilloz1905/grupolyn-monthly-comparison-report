@@ -55,7 +55,22 @@ const Deployer = {
   VERSION_MARKER: '@grupolyn-bootstrap-version',
 
   /** Versión del código de arranque que se despliega. */
-  BOOTSTRAP_VERSION: '1.0.0',
+  BOOTSTRAP_VERSION: '1.1.0',
+
+  /**
+   * Permisos que la biblioteca necesita para trabajar.
+   *
+   * Tienen que estar en el manifiesto DEL CLIENTE. Apps Script deduce los
+   * permisos leyendo el código, y el arranque solo contiene llamadas a
+   * `GrupoLynLib.…`: a través de una biblioteca no ve nada que deducir. Sin
+   * declararlos aquí, el menú se dibuja y luego todo falla por permisos.
+   */
+  REQUIRED_SCOPES: [
+    'https://www.googleapis.com/auth/spreadsheets.currentonly',
+    'https://www.googleapis.com/auth/script.container.ui',
+    'https://www.googleapis.com/auth/gmail.compose',
+    'https://www.googleapis.com/auth/userinfo.email',
+  ],
 
   /** Nombre del archivo inyectado en el proyecto del cliente. */
   BOOTSTRAP_FILE: 'GrupoLynBootstrap',
@@ -259,6 +274,14 @@ const Deployer = {
       });
     }
 
+    // Se AÑADEN los permisos que faltan, sin quitar los que el cliente ya tuviera:
+    // la hoja puede llevar otro script encima con necesidades propias.
+    const scopes = manifest.oauthScopes || [];
+    this.REQUIRED_SCOPES.forEach(function (s) {
+      if (scopes.indexOf(s) === -1) scopes.push(s);
+    });
+    manifest.oauthScopes = scopes;
+
     return JSON.stringify(manifest, null, 2);
   },
 
@@ -285,12 +308,46 @@ const Deployer = {
       ' * publica una versión nueva de la biblioteca: no hace falta tocar este archivo.',
       ' */',
       '',
-      'function onOpen() { ' + id + '.onOpen(); }',
-      'function showAuthDialog() { ' + id + '.showAuthDialog(); }',
-      'function processUnlock(code) { return ' + id + '.processUnlock(code); }',
-      'function lockAdmin() { return ' + id + '.lockAdmin(); }',
-      'function showReportDialog() { return ' + id + '.showReportDialog(); }',
-      'function runReportGeneration(p) { return ' + id + '.runReportGeneration(p); }',
+      '/**',
+      ' * Entrega a la biblioteca los almacenes DE ESTA HOJA.',
+      ' *',
+      ' * Una biblioteca que llame a PropertiesService por su cuenta lee las',
+      ' * propiedades de la biblioteca, que son las mismas para todos los clientes.',
+      ' * Pasándole las de aquí, cada hoja conserva su propio código de',
+      ' * administrador y su propio contador de intentos fallidos.',
+      ' */',
+      'function grupolynBind_() {',
+      '  ' + id + '.bindHost(',
+      '    PropertiesService.getScriptProperties(),',
+      '    CacheService.getUserCache()',
+      '  );',
+      '}',
+      '',
+      'function onOpen() { grupolynBind_(); ' + id + '.onOpen(); }',
+      'function showAuthDialog() { grupolynBind_(); ' + id + '.showAuthDialog(); }',
+      'function showHelpDialog() { grupolynBind_(); ' + id + '.showHelpDialog(); }',
+      'function processUnlock(code) { grupolynBind_(); return ' + id + '.processUnlock(code); }',
+      'function lockAdmin() { grupolynBind_(); return ' + id + '.lockAdmin(); }',
+      'function showReportDialog() { grupolynBind_(); return ' + id + '.showReportDialog(); }',
+      'function runReportGeneration(p) { grupolynBind_(); return ' + id + '.runReportGeneration(p); }',
+      '',
+      '/**',
+      ' * Instalación por hoja, UNA vez. El código de administrador vive en las',
+      ' * Script Properties, y esas NO se copian al duplicar una hoja: por eso hace',
+      ' * falta este paso aunque el resto ya venga desplegado.',
+      ' *',
+      ' * Escribe el código, ejecuta la función una vez, y vuelve a vaciarlo.',
+      ' */',
+      'function setupAdmin() {',
+      "  const CODIGO = '';        // mínimo 8 caracteres",
+      '  const AUTORIZADOS = [];   // opcional: [\'correo@dominio.com\']',
+      '  if (!CODIGO) {',
+      "    throw new Error('Escribe un código de al menos 8 caracteres en setupAdmin(), " +
+        "ejecútala una vez, y bórralo.');",
+      '  }',
+      '  grupolynBind_();',
+      '  return ' + id + '.installAdminCode(CODIGO, AUTORIZADOS);',
+      '}',
       '',
     ].join('\n');
   },
