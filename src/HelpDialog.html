@@ -71,8 +71,8 @@
   </ul>
 
   <div class="stop">
-    <b>The system never sends email.</b> It only creates drafts. The permissions it
-    requests from Google are compose-only and technically cannot send.
+    <b>The system never sends email.</b> It only creates drafts — the code contains no
+    send call at all, and an automated test fails if anyone adds one.
   </div>
 
   <h3>If something goes wrong</h3>

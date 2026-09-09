@@ -4,9 +4,17 @@
  *  - `buildBody(report)` es PURO: devuelve el texto. Testeable en Node.
  *  - `createDraft(...)` es lo único que toca GmailApp.
  *
- * REGLA INQUEBRANTABLE: se crea un BORRADOR, nunca se envía. Además el manifiesto
- * pide el scope `gmail.compose`, que es técnicamente incapaz de enviar — la regla
- * no depende de que el código se porte bien.
+ * REGLA INQUEBRANTABLE: se crea un BORRADOR, nunca se envía.
+ *
+ * OJO con el scope: `gmail.compose` es el más restringido que permite crear
+ * borradores, pero Google lo describe como «administrar borradores y enviar
+ * correo electrónico». SÍ permitiría enviar. No existe un scope de Gmail que
+ * deje crear borradores y prohíba enviarlos.
+ *
+ * Por tanto la garantía NO la da el permiso, la da este archivo: aquí no hay
+ * ninguna llamada de envío, y `test_correoNuncaEnvia()` falla si alguien la
+ * añade. Si alguna vez hace falta un candado real, la vía es un Web App que
+ * ejecute como el propietario, no un scope más estrecho: no lo hay.
  *
  * IDIOMA: el correo sale en INGLÉS, igual que la pestaña de reporte. Todo lo que
  * ve el cliente vive en el mismo idioma que su libro de trabajo, sus categorías y

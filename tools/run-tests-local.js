@@ -61,6 +61,10 @@ const source = FILES.map((f) => {
 
 const fakes = gasFakes.build();
 const sandbox = Object.assign({}, fakes.globals);
+// El codigo fuente, para que los tests puedan comprobar propiedades del propio
+// codigo: por ejemplo, que EmailDraft no contenga ninguna llamada de envio.
+sandbox.__sources = {};
+FILES.forEach((f) => { sandbox.__sources[f] = fs.readFileSync(path.join(SRC, f), 'utf8'); });
 // Los tests necesitan manipular el reloj y espiar la auditoría.
 sandbox.__gas = fakes.control;
 vm.createContext(sandbox);

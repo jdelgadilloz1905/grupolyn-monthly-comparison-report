@@ -924,6 +924,24 @@ function test_correoNoLlamaAboveALoQueEstaBelow() {
     'si incluye la que empuja en la misma direccion');
 }
 
+
+// --- La garantia de que nunca se envia esta AQUI, no en el permiso ---------
+// Google describe gmail.compose como "administrar borradores y enviar correo":
+// el permiso SI dejaria enviar. Lo que lo impide es que el codigo no lo hace.
+function test_correoNuncaEnvia() {
+  if (typeof __sources === 'undefined') return;
+  const raw = __sources['EmailDraft.js'];
+  // Fuera comentarios: la palabra puede aparecer explicandolo.
+  const code = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+  assertTrue(code.indexOf('sendEmail') === -1,
+    'EmailDraft no contiene GmailApp.sendEmail');
+  assertTrue(!/\.send\s*\(/.test(code),
+    'ni ninguna llamada .send()');
+  assertTrue(code.indexOf('createDraft') !== -1,
+    'y si usa createDraft');
+}
+
 /**
  * Ejecuta toda la batería. Punto de entrada tanto en Apps Script como en local.
  * @returns {{total: number, passed: number, failed: number, failures: Array}}
@@ -974,6 +992,7 @@ function runAllTests() {
   test_correoSinDesviacionesLoDiceClaro();
   test_correoIgnoraRuidoDePocoImporte();
   test_correoNoMezclaIdiomas();
+  test_correoNuncaEnvia();
   test_correoNoDiceQueAlgoExplicaMasDel100();
   test_correoNoLlamaAboveALoQueEstaBelow();
 

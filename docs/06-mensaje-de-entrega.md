@@ -48,9 +48,10 @@ dentro de la carpeta compartida.**
 >
 > Dos apuntes sobre decisiones que tomé y que explico en el documento:
 >
-> **El sistema crea borradores y nunca envía.** No es una limitación técnica: los permisos que
-> pide a Google son de redacción y son incapaces de enviar. Automatizar el análisis me parece
-> seguro; automatizar la comunicación con un cliente, no.
+> **El sistema crea borradores y nunca envía.** Automatizar el análisis me parece seguro;
+> automatizar la comunicación con un cliente, no. La garantía está en el código —no contiene
+> ninguna llamada de envío— y en una prueba que falla si alguien añade una. En el documento
+> explico por qué el permiso por sí solo no bastaría como garantía.
 >
 > **El menú protegido con código es una barrera de conveniencia, no un control de seguridad.**
 > Cualquiera con permiso de edición sobre la hoja puede abrir el editor de Apps Script. Lo digo
@@ -110,9 +111,10 @@ dentro de la carpeta compartida.**
 >
 > Two notes on decisions I made, both explained in the document:
 >
-> **The system creates drafts and never sends.** That is not a technical limitation: the
-> permissions it requests from Google are compose-only and cannot send. Automating the analysis
-> seems safe to me; automating client communication does not.
+> **The system creates drafts and never sends.** Automating the analysis seems safe to me;
+> automating client communication does not. The guarantee lives in the code — it contains no
+> send call — and in a test that fails if anyone adds one. The document explains why the
+> permission alone would not be guarantee enough.
 >
 > **The code-protected menu is a convenience barrier, not a security control.** Anyone with
 > edit access to the sheet can open the Apps Script editor. I say so in the document because I

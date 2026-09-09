@@ -93,7 +93,10 @@ aporta está documentado en la [entrega](docs/00-ENTREGA.md#sobre-la-contraseña
 
 - La contraseña se guarda como **hash con salt**, nunca en claro.
 - Bloqueo tras 5 intentos, sesión de 30 minutos, auditoría de cada acceso.
-- Scope `gmail.compose`: **técnicamente incapaz de enviar correo**.
+- El sistema **no envía correo**: usa `createDraft()` y no contiene ninguna llamada de envío.
+  Un test falla si alguien añade una. El scope `gmail.compose` es el más restringido que permite
+  crear borradores, pero **Google lo describe como «administrar borradores y enviar correo»**: la
+  garantía es el código, no el permiso.
 
 **Este repositorio no contiene ningún dato del cliente.** Los fixtures son sintéticos y
 reproducen solo la *forma* de cada caso límite.

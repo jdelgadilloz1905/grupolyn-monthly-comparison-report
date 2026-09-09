@@ -96,9 +96,17 @@ No es una limitación técnica, es una decisión: **automatizar el análisis es 
 automatizar la comunicación con un cliente no lo es.** Un dato mal interpretado, un mes
 atípico, una circunstancia personal que el sistema no conoce — y el correo ya salió.
 
-Lo he reforzado a nivel de permisos: el sistema pide a Google únicamente el permiso de
-*redactar*, que es **técnicamente incapaz de enviar**. Aunque alguien modificara el código
-mañana para que enviara, Google lo rechazaría.
+Sobre esto conviene ser exacto, porque es fácil prometer de más. El sistema pide el permiso
+`gmail.compose`, que es **el más restringido de los que permiten crear borradores**. Pero Google
+lo describe como *«administrar borradores y enviar correo electrónico»*: **técnicamente sí
+permitiría enviar**. No existe un permiso de Gmail que deje crear borradores y prohíba enviarlos.
+
+Así que la garantía no viene del permiso, viene del código: **no contiene ninguna llamada de
+envío**, solo `createDraft()`. Y hay una prueba automática que **falla si alguien añade una**.
+
+Lo aclaro porque en una primera redacción afírmaba que el permiso hacía imposible el envío. Al
+verificarlo contra la pantalla de permisos de Google resultó no ser cierto, y prefiero corregirlo
+antes que dejar una garantía que no se sostiene.
 
 ---
 
